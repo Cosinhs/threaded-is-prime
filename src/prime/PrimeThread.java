@@ -21,18 +21,26 @@ public class PrimeThread extends Thread {
 		System.out.println("Created thread #" + threadNumber + ".");
 	}
 
+	@Override
 	public void run() {
-		isPrime = isPrime(input);
+		this.isPrime = isPrime(input);
 	}
 
 	public boolean isPrime(BigInteger n) {
-		for (BigInteger i = start; i.compareTo(end) <= 0; i = i.add(BigInteger.ONE)) {
+		if (n.mod(BigInteger.TWO).equals(BigInteger.ZERO)) {
+			System.out.println("Factor: " + 2);
+			return false;
+		}
+		if (start.mod(BigInteger.TWO).equals(BigInteger.ZERO)) {
+			start = start.add(BigInteger.ONE);
+		}
+		for (BigInteger i = start; i.compareTo(end) <= 0; i = i.add(BigInteger.TWO)) {
 			if (n.mod(i).equals(BigInteger.ZERO)) {
+				System.out.println();
 				System.out.println("Factor: " + i);
 				return false;
 			}
 		}
-
 		return true;
 	}
 }

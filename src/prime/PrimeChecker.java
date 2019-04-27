@@ -48,9 +48,9 @@ public class PrimeChecker {
 	private BigInteger[] end;
 
 	public static final String Small   = "472882049";
-	public static final String Medium  = "27704267971";
-	public static final String Large   = "32416190071";
-	public static final String XLarge  = "48112959837082048697";
+	public static final String Medium  = "223617432266438401";
+	public static final String Large   = "302301299298295291";
+	public static final String XLarge  = "1050809378719198985041";
 	public static final String XXLarge = "2074722246773485207821695222107608587480996474721117292752992589912196684750549658310084416732550077";
 	
 	public static final boolean willGetUserInput = false;
@@ -65,10 +65,10 @@ public class PrimeChecker {
 		try {
 			getUserInput();
 			initStartEnd();
-			runThreads();
-
+			boolean result = runThreads();;
+			
 			System.out.println();
-			System.out.println("Is " + num + " a prime number? " + checkResults());
+			System.out.println("Is " + num + " a prime number? " + result);
 			System.out.println("Execution Time: " + (endTime - startTime) + " ms");
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -136,18 +136,18 @@ public class PrimeChecker {
 
 		for (int i = 0; i < nThread - 1; i++) {
 			start[i + 1] = start[i].add(size);
-			end[i] = start[i + 1].min(BigInteger.ONE);
+			end[i] = start[i + 1].subtract(BigInteger.ONE);
 		}
 		end[nThread - 1] = limit;
 
 		// print
-		/*
-		 * for (int i = 0; i < nThread; i++) { System.out.println("Thread #" +
-		 * (i + 1) + ": " + start[i] + "-" + end[i]); } System.out.println();
-		 */
+		
+		for (int i = 0; i < nThread; i++) { System.out.println("Thread #" +
+			(i + 1) + ": " + start[i] + "-" + end[i]); } System.out.println();
+		
 	}
 
-	public void runThreads() {
+	public boolean runThreads() {
 		pool = new ArrayList<PrimeThread>();
 
 		// initialize threads
@@ -167,23 +167,27 @@ public class PrimeChecker {
 			thread.start();
 		}
 
-		for (PrimeThread thread : pool) {
-			while (thread.isAlive()) {
-				// do nothing
+		while (true) {
+			int dead_thread = 0;
+			for (PrimeThread thread : pool) {
+				if (!thread.isAlive()) {
+					if (!thread.isPrime) {
+						endTime = System.currentTimeMillis();
+						for (PrimeThread thread2 : pool) {
+							thread2.stop();
+						}
+						return false;
+					}
+					dead_thread += 1;
+				}
+			}
+			if (dead_thread == nThread) {
+				break;
 			}
 		}
+		
 		endTime = System.currentTimeMillis();
 		// end benchmark
-	}
-
-	public boolean checkResults() {
-		for (PrimeThread i : pool) {
-			// If any of the threads identify the number as not prime, then it is not a prime number.
-			if (!i.isPrime)
-				return false;
-		}
-		
-		// If all of the threads identify it as a prime, then it is a prime number.
 		return true;
 	}
 }
